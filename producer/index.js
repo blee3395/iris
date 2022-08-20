@@ -5,7 +5,7 @@ const eventInteger = require('../eventTypes/eventInteger.js')
 
 const kafka = new Kafka({
   clientId: 'iris',
-  brokers: ['localhost:9092'],
+  brokers: ['ec2-34-235-115-252.compute-1.amazonaws.com:9092'],
   requestTimeout: 25000,
   connectionTimeout: 3000,
   retry: {
