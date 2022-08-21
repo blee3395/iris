@@ -12,6 +12,10 @@ import cors from 'cors'
 import dbController from './databaseController.js'
 import portController from './portController.js'
 
+import writeCSV from "./latencyTest/writeCSV.js"
+
+
+
 const PORT = 8080
 
 //------------------------------------------------------------------------------------------------------------//
@@ -146,35 +150,63 @@ let lastTimeStamp = 0;
 // setInterval to query data and store in backend every 15s.
 
 setInterval(async () : Promise<void> => {
-  // setTimeout(async () : Promise<void> => {
-    await dbController.add_failedpartitionscount_value(lastTimeStamp);
-    await dbController.add_maxlag_value(lastTimeStamp);
-    await dbController.add_bytesoutpersec_rate(lastTimeStamp);
-    // console.log('db after 0 sec')
-  // }, 0)
-
-  // setTimeout(async () : Promise<void> => {
-    await dbController.add_messagesinpersec_rate(lastTimeStamp);
-    await dbController.add_replicationbytesinpersec_rate(lastTimeStamp);
-    await dbController.add_underreplicatedpartitions(lastTimeStamp);
-    // console.log('db after 2 sec')
-  // }, 2000)
-
-  // setTimeout(async () : Promise<void> => {
-    await dbController.add_failedisrupdatespersec(lastTimeStamp);
-    await dbController.add_scrapedurationseconds(lastTimeStamp);
-    await dbController.add_scrape_samples_scraped(lastTimeStamp);
-    // console.log('db after 4 sec')
-  // }, 4000)
-
-  // setTimeout(async () : Promise<void> => {
-    await dbController.add_requesthandleraverageidlepercent(lastTimeStamp)
+    const start = Date.now();
+    console.log('start time:', Date.now() - start)
+    await Promise.allSettled([
+      dbController.add_failedpartitionscount_value(lastTimeStamp),
+      dbController.add_maxlag_value(lastTimeStamp),
+      dbController.add_bytesoutpersec_rate(lastTimeStamp),
+      dbController.add_messagesinpersec_rate(lastTimeStamp),
+      dbController.add_replicationbytesinpersec_rate(lastTimeStamp),
+      dbController.add_underreplicatedpartitions(lastTimeStamp),
+      dbController.add_failedisrupdatespersec(lastTimeStamp),
+      dbController.add_scrapedurationseconds(lastTimeStamp),
+      dbController.add_scrape_samples_scraped(lastTimeStamp),
+      dbController.add_requesthandleraverageidlepercent(lastTimeStamp)
+    ])
+    writeCSV(path.resolve(__dirname, './latencyTest/PromiseAll_AWS.csv'), {
+      'id': lastTimeStamp,
+      'duration(s)': Date.now() - start,
+    })
     lastTimeStamp = await dbController.add_bytesinpersec_rate(lastTimeStamp)
-    // console.log('in setInterval after dbController new time:', lastTimeStamp)
-    // console.log('db after 6 sec')
-  // }, 6000)
+    console.log('End time:', Date.now() - start)
 
-}, 60000)// 1 minute set interval
+
+  // // setTimeout(async () : Promise<void> => {
+  //   await dbController.add_failedpartitionscount_value(lastTimeStamp);
+  //   await dbController.add_maxlag_value(lastTimeStamp);
+  //   await dbController.add_bytesoutpersec_rate(lastTimeStamp);
+  //   // console.log('db after 0 sec')
+  // // }, 0)
+
+  // // setTimeout(async () : Promise<void> => {
+  //   await dbController.add_messagesinpersec_rate(lastTimeStamp);
+  //   await dbController.add_replicationbytesinpersec_rate(lastTimeStamp);
+  //   await dbController.add_underreplicatedpartitions(lastTimeStamp);
+  //   // console.log('db after 2 sec')
+  // // }, 2000)
+
+  // // setTimeout(async () : Promise<void> => {
+  //   await dbController.add_failedisrupdatespersec(lastTimeStamp);
+  //   await dbController.add_scrapedurationseconds(lastTimeStamp);
+  //   await dbController.add_scrape_samples_scraped(lastTimeStamp);
+  //   // console.log('db after 4 sec')
+  // // }, 4000)
+
+  // // setTimeout(async () : Promise<void> => {
+  //   await dbController.add_requesthandleraverageidlepercent(lastTimeStamp)
+  //   console.log('End time:', Date.now() - start)
+  //   writeCSV(path.resolve(__dirname, './latencyTest/noPromiseAll_AWS.csv'), {
+  //     'id': lastTimeStamp,
+  //     'duration(s)': Date.now() - start,
+  //   })
+
+  //   lastTimeStamp = await dbController.add_bytesinpersec_rate(lastTimeStamp)
+  //   // console.log('in setInterval after dbController new time:', lastTimeStamp)
+  //   // console.log('db after 6 sec')
+  // // }, 6000)
+
+}, 15000)// 1 minute set interval
 
 //------------------------------------------------------------------------------------------------------------//
 //Post request to frontend to show historical data for each Metric Chart
